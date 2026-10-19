@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Achat - TP DevOps</title>
+  <style>
+    body { font-family: sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
+    form { display: flex; gap: .5rem; margin-bottom: 1rem; }
+    input { padding: .4rem; }
+    li { padding: .25rem 0; }
+    #etat { color: #666; font-size: .9rem; }
+  </style>
+</head>
+<body>
+  <h1>Produits</h1>
+  <form id="formulaire">
+    <input id="nom" placeholder="Nom du produit" required>
+    <input id="prix" type="number" step="0.01" placeholder="Prix" required>
+    <button type="submit">Ajouter</button>
+  </form>
+  <p id="etat"></p>
+  <ul id="liste"></ul>
+
+  <script>
+    const liste = document.getElementById('liste');
+    const etat = document.getElementById('etat');
+
+    async function charger() {
+      try {
+        const reponse = await fetch('/api/produits');
+        const produits = await reponse.json();
+        liste.innerHTML = '';
+        produits.forEach(p => {
+          const li = document.createElement('li');
+          li.textContent = p.nom + ' : ' + p.prix;
+          liste.appendChild(li);
+        });
+        etat.textContent = produits.length + ' produit(s) dans la base MySQL';
+      } catch (e) {
+        etat.textContent = 'Backend injoignable : ' + e;
+      }
+    }
+
+    document.getElementById('formulaire').addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      await fetch('/api/produits', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nom: document.getElementById('nom').value,
+          prix: parseFloat(document.getElementById('prix').value)
+        })
+      });
+      ev.target.reset();
+      charger();
+    });
+
+    charger();
+  </script>
+</body>
+</html>
